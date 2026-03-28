@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Student CRUD API",
+    "description": "Postman collection for the Student CRUD REST API built with Python and Flask.\n\nSet the `base_url` collection variable to `http://localhost:5000` before running requests.\n\nSuggested order: Create Student → Get All → Get by ID → Update → Delete.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "1",
+      "type": "string",
+      "description": "ID of a student — update after creating one"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/healthcheck",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "healthcheck"]
+            },
+            "description": "Returns `200 OK` with `{\"status\": \"healthy\"}` when the service is running."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "students"]
+            },
+            "description": "Retrieve the full list of students."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "students", "{{student_id}}"]
+            },
+            "description": "Retrieve a single student by their numeric ID. Returns `404` if not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('student_id', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Smith\",\n  \"email\": \"alice@example.com\",\n  \"age\": 21,\n  \"grade\": \"A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "students"]
+            },
+            "description": "Create a new student. `name` and `email` are required. The test script automatically saves the new student's ID to the `student_id` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Johnson\",\n  \"grade\": \"A+\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "students", "{{student_id}}"]
+            },
+            "description": "Partial update — only send the fields you want to change. Returns `404` if not found, `409` if the new email conflicts with an existing record."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "students", "{{student_id}}"]
+            },
+            "description": "Permanently delete a student record. Returns `404` if not found."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

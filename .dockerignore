@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment files — never bake secrets into the image
+.env
+
+# Local SQLite databases
+*.db
+*.sqlite3
+
+# Tests — not needed at runtime
+tests/
+
+# CI / editor artefacts
+.git/
+.github/
+.gitignore
+.pytest_cache/
+htmlcov/
+.coverage
+.vscode/
+.idea/
+*.swp
+
+# Docs / metadata
+README.md
+Makefile
+make.ps1
+postman/

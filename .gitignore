@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment files — never commit real secrets
+.env
+
+# SQLite databases
+*.db
+*.sqlite3
+
+# Flask-Migrate generated folder (commit your own after `flask db init`)
+# Remove the line below once you have initialised migrations
+# migrations/
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# IDEs
+.vscode/
+.idea/
+*.swp
