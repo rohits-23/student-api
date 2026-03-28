@@ -1,63 +1,57 @@
 name: CI
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Triggers
-# ─────────────────────────────────────────────────────────────────────────────
 on:
   push:
-    branches: [main, master]
-    paths:                          # only run when code files change
-      - 'app/**'
-      - 'tests/**'
-      - 'run.py'
-      - 'requirements.txt'
-      - 'Dockerfile'
-      - 'docker-compose.yml'
-      - '.github/workflows/**'
-      - '.flake8'
+    branches:
+      - main
+      - master
+    paths:
+      - "app/**"
+      - "tests/**"
+      - "run.py"
+      - "requirements.txt"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+      - ".flake8"
 
   pull_request:
-    branches: [main, master]
+    branches:
+      - main
+      - master
     paths:
-      - 'app/**'
-      - 'tests/**'
-      - 'run.py'
-      - 'requirements.txt'
-      - 'Dockerfile'
-      - 'docker-compose.yml'
-      - '.github/workflows/**'
-      - '.flake8'
+      - "app/**"
+      - "tests/**"
+      - "run.py"
+      - "requirements.txt"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+      - ".flake8"
 
-  workflow_dispatch:                # manual trigger
+  workflow_dispatch:
     inputs:
       push_image:
-        description: 'Push Docker image to DockerHub after build'
+        description: "Push Docker image to DockerHub after build"
         required: false
-        default: 'true'
+        default: "true"
         type: boolean
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Global env
-# ─────────────────────────────────────────────────────────────────────────────
 env:
-  PYTHON_VERSION: '3.12'
-  IMAGE_NAME: student-api
+  PYTHON_VERSION: "3.12"
+  IMAGE_NAME: "student-api"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Jobs
-# ─────────────────────────────────────────────────────────────────────────────
 jobs:
 
-  # ── Stage 1: Build API ──────────────────────────────────────────────────────
+  # Stage 1: Build API
   build:
     name: Build API
     runs-on: self-hosted
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -67,17 +61,16 @@ jobs:
         shell: bash
         run: make install
 
-  # ── Stage 2: Run Tests ──────────────────────────────────────────────────────
+  # Stage 2: Run Tests
   test:
     name: Run Tests
     runs-on: self-hosted
     needs: build
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -90,21 +83,20 @@ jobs:
       - name: Run unit tests
         shell: bash
         env:
-          FLASK_ENV: testing
-          TEST_DATABASE_URL: sqlite:///:memory:
+          FLASK_ENV: "testing"
+          TEST_DATABASE_URL: "sqlite:///:memory:"
         run: make test
 
-  # ── Stage 3: Code Linting ───────────────────────────────────────────────────
+  # Stage 3: Code Linting
   lint:
     name: Code Linting
     runs-on: self-hosted
     needs: build
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -118,15 +110,17 @@ jobs:
         shell: bash
         run: make lint
 
-  # ── Stage 4 & 5: Docker Login → Build → Push ───────────────────────────────
+  # Stage 4 and 5: Docker Login, Build and Push
   docker:
-    name: Docker Build & Push
+    name: Docker Build and Push
     runs-on: self-hosted
-    needs: [test, lint]
-    if: |
+    needs:
+      - test
+      - lint
+    if: >
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.push_image == 'true')
-
+      (github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.push_image == 'true')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -140,22 +134,22 @@ jobs:
 
       - name: Docker login to DockerHub
         shell: bash
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
-            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: >
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" |
+          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build Docker image
         shell: bash
-        run: |
-          docker build \
-            -t "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}" \
-            .
+        run: >
+          docker build
+          -t "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
+          .
 
       - name: Push Docker image to DockerHub
         shell: bash
-        run: |
-          docker push \
-            "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
+        run: >
+          docker push
+          "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
 
       - name: Docker logout
         if: always()
