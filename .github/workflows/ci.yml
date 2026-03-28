@@ -123,11 +123,9 @@ jobs:
     name: Docker Build & Push
     runs-on: self-hosted
     needs: [test, lint]
-    # Only push on direct pushes to main/master or when manually requested
-    if: >-
+    if: |
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' &&
-       github.event.inputs.push_image == 'true')
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.push_image == 'true')
 
     steps:
       - name: Checkout code
@@ -139,7 +137,6 @@ jobs:
         run: |
           VERSION=$(cat VERSION | tr -d '[:space:]')
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Image tag: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${VERSION}"
 
       - name: Docker login to DockerHub
         shell: bash
