@@ -27,6 +27,9 @@ env/
 htmlcov/
 .coverage
 
+# Actions runner (if installed inside the project folder)
+actions-runner/
+
 # IDEs
 .vscode/
 .idea/

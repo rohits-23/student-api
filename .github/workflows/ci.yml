@@ -58,8 +58,8 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        shell: bash
-        run: make install
+        shell: pwsh
+        run: pip install -r requirements.txt
 
   # Stage 2: Run Tests
   test:
@@ -77,15 +77,15 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        shell: bash
-        run: make install
+        shell: pwsh
+        run: pip install -r requirements.txt
 
       - name: Run unit tests
-        shell: bash
+        shell: pwsh
         env:
           FLASK_ENV: "testing"
           TEST_DATABASE_URL: "sqlite:///:memory:"
-        run: make test
+        run: pytest tests/ -v
 
   # Stage 3: Code Linting
   lint:
@@ -103,12 +103,12 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        shell: bash
-        run: make install
+        shell: pwsh
+        run: pip install -r requirements.txt
 
       - name: Run flake8 linting
-        shell: bash
-        run: make lint
+        shell: pwsh
+        run: flake8 app/ tests/ run.py
 
   # Stage 4 and 5: Docker Login, Build and Push
   docker:
@@ -127,31 +127,27 @@ jobs:
 
       - name: Read VERSION
         id: version
-        shell: bash
+        shell: pwsh
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
-          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          $VERSION = (Get-Content VERSION -Raw).Trim()
+          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
 
       - name: Docker login to DockerHub
-        shell: bash
-        run: >
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" |
-          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        shell: pwsh
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        shell: bash
-        run: >
-          docker build
-          -t "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
-          .
+        shell: pwsh
+        run: |
+          docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}" .
 
       - name: Push Docker image to DockerHub
-        shell: bash
-        run: >
-          docker push
-          "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
+        shell: pwsh
+        run: |
+          docker push "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}"
 
       - name: Docker logout
         if: always()
-        shell: bash
+        shell: pwsh
         run: docker logout
